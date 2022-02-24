@@ -41,8 +41,8 @@ class _AddTaskPageState extends State<AddTaskPage> {
                 "Add Task",
                 style: headingStyle,
               ),
-              MyInputField(title: "Title", hint: "Enter your title"),
-              MyInputField(title: "Note", hint: "Enter your note"),
+              MyInputField(title: "Title", hint: "Enter your title", controller: _titleController,),
+              MyInputField(title: "Note", hint: "Enter your note", controller: _noteController,),
               MyInputField(
                 title: "Date",
                 hint: DateFormat.yMd().format(_selectedDate),
@@ -145,7 +145,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _colorPalette(),
-                  MyButton(label: "Create Task", onTap: ()=> null)
+                  MyButton(label: "Create Task", onTap: ()=> _validateData())
 
                 ],
               )
@@ -190,7 +190,17 @@ class _AddTaskPageState extends State<AddTaskPage> {
   }
 
   _validateData(){
+    if(_titleController.text.isNotEmpty&& _noteController.text.isNotEmpty) {
+      Get.back();
+    }else if(_titleController.text.isEmpty || _noteController.text.isEmpty){
+      Get.snackbar("Required", "All fields are required",
+      snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: white,
+        colorText: pinkClr,
+        icon: Icon(Icons.warning_amber_rounded)
 
+      );
+    }
   }
 
 
