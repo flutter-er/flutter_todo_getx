@@ -1,5 +1,7 @@
 import 'package:date_picker_timeline/date_picker_timeline.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:flutter_todo_getx/controllers/task_controller.dart';
 import 'package:flutter_todo_getx/services/notification_service.dart';
 import 'package:flutter_todo_getx/services/theme_service.dart';
 import 'package:flutter_todo_getx/ui/add_task_bar.dart';
@@ -10,6 +12,9 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../model /task.dart';
+import '../widgets/task_tile.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -19,6 +24,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   DateTime _selectedDate = DateTime.now();
+  final _taskController = Get.put(TaskController());
   var notifyHelper;
 
   @override
@@ -38,9 +44,59 @@ class _HomePageState extends State<HomePage> {
         children: [
           _addTaskBar(),
           _addDateBar(),
+          SizedBox(
+            height: 10,
+          ),
+          _showTasks(),
         ],
       ),
     );
+  }
+
+  _showTasks() {
+    return Expanded(child: Obx(() {
+      return ListView.builder(
+          itemCount: _taskController.taskList.length,
+          itemBuilder: (_, index) {
+            return AnimationConfiguration.staggeredList(
+                position: index,
+                child: SlideAnimation(
+                  child: FadeInAnimation(
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                            onTap: () {
+                              _showBottomSheet(context, _taskController.taskList[index]);
+                            },
+                            child: TaskTile(_taskController.taskList[index]))
+                      ],
+                    ),
+                  ),
+                ));
+          });
+    }));
+  }
+
+  _showBottomSheet(BuildContext context, Task task){
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.only(top: 4),
+        height: task.isCompleted ==1? MediaQuery.of(context).size.height*0.24:
+        MediaQuery.of(context).size.height*0.32,
+        color: Get.isDarkMode?darkGreyClr:Colors.white,
+        child: Column(
+          children: [
+            Container(height: 6, width: 120,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Get.isDarkMode?Colors.grey[600]:Colors.grey[300]
+            ),)
+          ],
+        ),
+      )
+    );
+
+
   }
 
   _addDateBar() {
@@ -102,7 +158,12 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-          MyButton(label: " + Add Task", onTap: () => Get.to(AddTaskPage())),
+          MyButton(
+              label: " + Add Task",
+              onTap: () async {
+                await Get.to(AddTaskPage());
+                _taskController.getTask();
+              })
         ],
       ),
     );

@@ -41,6 +41,7 @@ dependencies:
   google_fonts:
   get_storage:
   sqflite:
+  flutter_staggered_animations:
   get:
 
 
