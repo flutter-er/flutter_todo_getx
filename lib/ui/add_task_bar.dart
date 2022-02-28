@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_todo_getx/controllers/task_controller.dart';
+import 'package:flutter_todo_getx/model%20/task.dart';
 import 'package:flutter_todo_getx/ui/theme.dart';
 import 'package:flutter_todo_getx/widgets/button.dart';
 import 'package:get/get.dart';
@@ -15,6 +17,7 @@ class AddTaskPage extends StatefulWidget {
 }
 
 class _AddTaskPageState extends State<AddTaskPage> {
+  final TaskController _taskController = Get.put(TaskController());
   TextEditingController _titleController = TextEditingController();
   TextEditingController _noteController = TextEditingController();
   String _endTime = "9:30 PM";
@@ -41,8 +44,16 @@ class _AddTaskPageState extends State<AddTaskPage> {
                 "Add Task",
                 style: headingStyle,
               ),
-              MyInputField(title: "Title", hint: "Enter your title", controller: _titleController,),
-              MyInputField(title: "Note", hint: "Enter your note", controller: _noteController,),
+              MyInputField(
+                title: "Title",
+                hint: "Enter your title",
+                controller: _titleController,
+              ),
+              MyInputField(
+                title: "Note",
+                hint: "Enter your note",
+                controller: _noteController,
+              ),
               MyInputField(
                 title: "Date",
                 hint: DateFormat.yMd().format(_selectedDate),
@@ -139,14 +150,15 @@ class _AddTaskPageState extends State<AddTaskPage> {
                                   color: Colors.grey,
                                 )));
                       }).toList())),
-              SizedBox(height: 18,),
+              SizedBox(
+                height: 18,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _colorPalette(),
-                  MyButton(label: "Create Task", onTap: ()=> _validateData())
-
+                  MyButton(label: "Create Task", onTap: () => _validateData())
                 ],
               )
             ],
@@ -156,53 +168,81 @@ class _AddTaskPageState extends State<AddTaskPage> {
     );
   }
 
-  _colorPalette(){
-    return   Column(
+  _addTaskToDb() async {
+    int value = await _taskController.addTask(
+    task:Task(
+      note: _noteController.text,
+      title: _titleController.text,
+      date: DateFormat.yMd().format(_selectedDate),
+      startTime: _startTime,
+      endTime: _endTime,
+      remind: _selectedRemind,
+      repeat: _selectedRepeat,
+      color: _selectedColor,
+      isCompleted: 0,
+    )
+    );
+    print("my id is "+" $value");
+
+  }
+
+  _colorPalette() {
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "Color",
           style: titleStyle,
         ),
-        SizedBox(height: 8.0,),
+        SizedBox(
+          height: 8.0,
+        ),
         Wrap(
             children: List<Widget>.generate(3, (int index) {
-              return GestureDetector(
-                onTap: (){
-                  setState(() {
-                    _selectedColor = index;
-
-                  });
-
-                },
-                child: Padding(
-                  padding: EdgeInsets.only(right: 8),
-                  child: CircleAvatar(
-                      radius: 14,
-                      backgroundColor:index == 0?primaryClr:index==1 ?pinkClr:yellowClr,
-                      child: _selectedColor == index? Icon(Icons.done, color: Colors.white,size: 16,):Container()
-                  ),
-                ),
-              );
-            }))
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedColor = index;
+              });
+            },
+            child: Padding(
+              padding: EdgeInsets.only(right: 8),
+              child: CircleAvatar(
+                  radius: 14,
+                  backgroundColor: index == 0
+                      ? primaryClr
+                      : index == 1
+                          ? pinkClr
+                          : yellowClr,
+                  child: _selectedColor == index
+                      ? Icon(
+                          Icons.done,
+                          color: Colors.white,
+                          size: 16,
+                        )
+                      : Container()),
+            ),
+          );
+        }))
       ],
     );
   }
 
-  _validateData(){
-    if(_titleController.text.isNotEmpty&& _noteController.text.isNotEmpty) {
+  _validateData() {
+    if (_titleController.text.isNotEmpty && _noteController.text.isNotEmpty) {
+      _addTaskToDb();
       Get.back();
-    }else if(_titleController.text.isEmpty || _noteController.text.isEmpty){
+    } else if (_titleController.text.isEmpty || _noteController.text.isEmpty) {
       Get.snackbar("Required", "All fields are required",
-      snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: white,
-        colorText: pinkClr,
-        icon: Icon(Icons.warning_amber_rounded)
-
-      );
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: white,
+          colorText: pinkClr,
+          icon: Icon(
+            Icons.warning_amber_rounded,
+            color: Colors.red,
+          ));
     }
   }
-
 
   _appBar(BuildContext context) {
     return AppBar(
